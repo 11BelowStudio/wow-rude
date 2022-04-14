@@ -1,9 +1,9 @@
 {
 	"name": "wow rude",
-	"description": "you ever just have someone murder that cop you're trying to convert? it's rude, isn't it? (lovingly ripped from helpful intimidated outlines)",
+	"description": "you ever just have someone murder that cop you're trying to convert? it's rude, isn't it?\n(lovingly ripped from helpful intimidated outlines)",
 	"author": "3[L] (credit to Undeadsewer, Snh20, Girnee, BangL for the original intimidated outlines mod, Hoppip for HopLib's automenubuilder, and zenyr et al for the bits of PocoHud3 which I lovingly nicked)",
 	"contact": "11belowstudio.github.io",
-	"version": "3",
+	"version": "4",
 	"color": "189 30 36",
 	"image" : "icon.png", 
 	"blt_version": 2,
@@ -14,19 +14,11 @@
 		},
 		{
 			"hook_id" : "lib/units/enemies/cop/copmovement",
-			"script_path" : "copmovement.lua"
-		},
-		{
-			"hook_id" : "lib/units/enemies/cop/copdamage",
-			"script_path" : "copdamage.lua"
+			"script_path" : "rude.lua"
 		},
 		{
 			"hook_id" : "lib/managers/enemymanager",
-			"script_path" : "copdamage.lua"
-		},
-		{
-			"hook_id" : "lib/units/enemies/cop/huskcopdamage",
-			"script_path" : "huskcopdamage.lua"
+			"script_path" : "rude.lua"
 		}
 	],
 	"updates" : [

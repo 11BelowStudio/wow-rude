@@ -1,6 +1,10 @@
 # Wow, rude
 A crappy BLTHook mod for payday 2 that automatically complains whenever someone kills a surrendering/intimidated cop
 
+**REQUIRES HOPLIB**
+
+HopLib can be installed from https://modworkshop.net/mod/21431 or https://github.com/segabl/pd2-hoplib/archive/master.zip
+
 
 [![forthebadge](https://forthebadge.com/images/badges/built-with-resentment.svg)](https://forthebadge.com) 
 

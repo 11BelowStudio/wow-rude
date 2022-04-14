@@ -1,447 +1,409 @@
-dofile(ModPath .. 'automenubuilder.lua')
+if not HopLib then
+	if managers.chat then 
+		managers.chat:_receive_message(ChatManager.GAME,"wow rude [ERROR]","HopLib is required to use this mod! See mods/logs/{today}.txt for links to HopLib.",Color.red)
+	end
+	log("WOW RUDE: HopLib can be downloaded from https://modworkshop.net/mod/21431 or https://github.com/segabl/pd2-hoplib/archive/master.zip or ")
+	return
+end
+
+--dofile(ModPath .. 'automenubuilder.lua')
 dofile(ModPath .. 'wowRudeResponses.lua')
 
---[[
-
-  This Source Code Form is subject to the terms of the Mozilla Public
-  License, v. 2.0. If a copy of the MPL was not distributed with this
-  file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
-]]--
 
 
 -- YEAH IT'S BASICALLY RIPPED FROM HELPFUL INTIMIDATED OUTLINES
 -- and a bit from PocoHud3
 
-local _conv = {
---[[
-    city_swat	=	'_mob_city_swat',
-    cop	=	'_mob_cop',
-    fbi	=	'_mob_fbi',
-    fbi_heavy_swat	=	'_mob_fbi_heavy_swat',
-    fbi_swat	=	'_mob_fbi_swat',
-    gangster	=	'_mob_gangster',
-    gensec	=	'_mob_gensec',
-    heavy_swat	=	'_mob_heavy_swat',
-    security	=	'_mob_security',
-    shield	=	'_mob_shield',
-    sniper	=	'_mob_sniper',
-    spooc	=	'_mob_spooc',
-    swat	=	'_mob_swat',
-    tank	=	'_mob_tank',
-    taser	=	'_mob_taser',
-]]--
-	city_swat	=	'ingame_wow_rude_an_enemy',
-    cop	=	'ingame_wow_rude_an_enemy',
-    fbi	=	'ingame_wow_rude_an_enemy',
-    fbi_heavy_swat	=	'ingame_wow_rude_an_enemy',
-    fbi_swat	=	'ingame_wow_rude_an_enemy',
-    gangster	=	'ingame_wow_rude_an_enemy',
-    gensec	=	'ingame_wow_rude_an_enemy',
-    heavy_swat	=	'ingame_wow_rude_an_enemy',
-    security	=	'ingame_wow_rude_an_enemy',
-    shield	=	'ingame_wow_rude_an_enemy',
-    sniper	=	'ingame_wow_rude_an_enemy',
-    spooc	=	'ingame_wow_rude_an_enemy',
-    swat	=	'ingame_wow_rude_an_enemy',
-    tank	=	'ingame_wow_rude_an_enemy',
-    taser	=	'ingame_wow_rude_an_enemy',
-}
+if not WowRude then
 
 
-WowRude = 
-	WowRude or 
-	{
-		_settings = {
-			isEnabled = true,
-			hostOnly = false,
-			nameAndShame = true,
-			--complainCivilians = true
+	_G.WowRude = {}
+	
+	WowRude._settings = {
+		isEnabled = true,
+		hostOnly = false,
+		complainHandsUp = true,
+		complainCivilians = false,
+		nameAndShame = true,
+		
+		logInChat = false,
+		minLogInChat = 1
 			
-		},
-		_values = {
-			nameAndShame = {
-				callback = function () WowRudeResponses:resetCursor() end
-			}
-		},
-		_order = {
-            isEnabled = 100,
-			nameAndShame = 90,
-			--complainCivilians = 80
-		}
-		
-		--[[
-		-- table for the responses we might use when someone kills our intimidated cop
-		_responses = {
-			"rude",
-			"smh my head",
-			"you serious?",
-			"kids these days...",
-			"what the fuck",
-			"bruh",
-			"excuse me!?"
-		},
-		
-		-- the size of the above table
-		_responseCount = 7,
-		--]]
-		-- the cursor for the next response we'll be using from that table
-		--_responseCursor = 1,
-		
 	}
-
-
-
-Hooks:Add(
-    'MenuManagerBuildCustomMenus',
-    'MenuManagerBuildCustomMenus_WowRude',
-    function(menu_manager, nodes)
-        AutoMenuBuilder:load_settings(WowRude._settings, 'wow_rude')
-        AutoMenuBuilder:create_menu_from_table(
-            nodes,
-            WowRude._settings,
-            'wow_rude',
-            'blt_options',
-            WowRude._values,
-            WowRude._order
-        )
-    end
-)
-
-local mpath = ModPath
-
-Hooks:Add(
-    'LocalizationManagerPostInit',
-    'LocalizationManagerPostInit_WowRude',
-    function(loc)
-        local lang, path = SystemInfo and SystemInfo:language(), 'loc/english.json'
-        --[[
-		if lang == Idstring('language') then
-            path = 'loc/language.txt'
-        end
-		]]--
-        loc:load_localization_file(mpath .. path)
-    end
-)
-
--- the dictionary(?) of intimidated cops
-WowRude._trackedUnits = {}
-
-
-
-
-local function get_keys(t)
-  local keys={}
-  for key,_ in pairs(t) do
-    table.insert(keys, key)
-  end
-  return keys
-end
-
-
-
-
--- nicked from PocoHud3
-function WowRude:pidToPeer(pid)
-    local session = managers.network:session()
-    return session and session:peer(pid)
-end
-
--- nicked from PocoHud3
- function WowRude:_peer(something)
-    local t = type(something)
-    if t == 'userdata' then
-        return alive(something) and something:network() and something:network():peer()
-    end
-    if t == 'number' then
-        return WowRude:pidToPeer(something)
-    end
-    if t == 'string' then
-        return WowRude:_peer(managers.criminals:character_peer_id_by_name( something ))
-    end
-end
-
--- nicked from PocoHud3
-function WowRude:_pos(something,head)
-    local t, unit = type(something)
-    if t == 'number' and managers.network and managers.network:session() then
-        local peer = managers.network:session():peer(something)
-        unit = peer and peer:unit() or nil
-    else
-        unit = something
-    end
-    if not (unit and alive(unit)) then return Vector3() end
-    local pos = Vector3()
-    mvector3.set(pos,unit:position())
-    if head and unit.movement and unit:movement() and unit:movement():m_head_pos() then
-        mvector3.set_z(pos,unit:movement():m_head_pos().z+(type(head)=='number' and head or 0))
-    end
-    return pos
-end
-
--- nicked from PocoHud3
-function WowRude:_name(something)
-	if something == nil then
-		return "????"
+	WowRude._values = {
+		minLogInChat = {
+			min = 0,
+			max = 5,
+			step = 1
+		}
+	}
+	WowRude._order = {
+		isEnabled = 100,
+		hostOnly = 95,
+		complainHandsUp = 90,
+		complainCivilians = 85,
+		nameAndShame = 80,
+		logInChat = 2,
+		minLogInChat = 1
+	}
+	
+	local Complainer = class()
+	
+	WowRude.complainer = Complainer
+	
+	local tracked_units = {}
+	
+	Complainer.tracked_units = tracked_units
+	
+	
+	
+	
+	-- utility function to reset the tracked units.
+	function WowRude:reset()
+		local units = Complainer.tracked_units
+		for k in pairs(units) do
+			units[k] = nil
+		end
 	end
-	local str = type_name(something)
-	if str == 'Unit' then
-        if something:base() then
-			WowRude:rudeLog("something:base() exists! keys: ")
-			WowRude:rudeLog(table.concat(get_keys(something:base()), ", "))
-			if something:base()._tweak_table then
-				return WowRude:_name(something:base() and something:base()._tweak_table)
-			end
-        end
-        return "?????"
-    elseif str == 'string' then -- tweak_table name
-        local pName = managers.criminals:character_peer_id_by_name( something )
-        if pName then
-            return WowRude:_name(pName)
-        else
-            local conv = _conv
-            return L(conv[something]) or "AI"
-        end
-    --end
-	elseif str == 'number' then
-		local peer = WowRude:_peer(something)
-		local name = peer and peer:name() or 'Someone'
-		name = name:gsub('{','['):gsub('}',']')
-		return name
-	else
-		return 'someone'
+	
+	-- logging utility function that also logs stuff in chat
+	function WowRude:rudeLog(logThis, importance)
+		log("wow rude [" .. importance .. "] " .. logThis)
+		
+		if managers.chat and self._settings.logInChat and (importance >= self._settings.minLogInChat) then 
+			managers.chat:_receive_message(ChatManager.GAME,"wow rude [".. importance .. "]",logThis,Color.orange)
+			return true
+		end
 	end
-	return "OH GOD OH FUCK IT BROKE"
+	
+	
 	--[[
-    local hDot,fDot
-    local truncated = name:gsub('^%b[]',''):gsub('^%b==',''):gsub('^%s*(.-)%s*$','%1')
-    if O:get('game','truncateTags') and utf8.len(truncated) > 0 and name ~= truncated then
-        name = truncated
-        hDot = true
-    end
-    local tLen = O:get('game','truncateNames')
-    if tLen > 1 then
-        tLen = (tLen - 1) * 3
-        if tLen < utf8.len(name) then
-            name = utf8.sub(name,1,tLen)
-            fDot = true
-        end
-    end
-    return (hDot and Icon.Dot or '')..name..(fDot and Icon.Dot or '')
-	--]]
-end
-
---[[
-Checks if wowRude is enabled or not.
-]]--
-function WowRude:isEnabled()
-	if WowRude._settings.isEnabled then
-		--log("wow rude: is enabled")
-		if WowRude._settings.hostOnly then
-			--log("wow rude: checking host only")
-			return Network:is_server()
-		end
-		return true
-	end
-	WowRude:rudeLog("is not enabled")
-	return false
-end
-
-
---[[
-Stop tracking a cop (removes it from the table).
-Happens regardless of whether or not WowRude is enabled or not.
-Returns true if cop was being tracked, false if not being tracked.
-]]--
-function WowRude:stopTracking(copToStopTracking)
-	--WowRude:rudeLog("stopping tracking")
-	if WowRude._trackedUnits[copToStopTracking] then
-		WowRude:rudeLog("no longer tracked")
-		WowRude._trackedUnits[copToStopTracking] = nil
-		return true
-	end
-	return false
-end
-
-
---[[ 
-attempts to add an intimidatedCop to the table of cops to track.
-	If the cop could be added, return true.
-	If the cop could not be added (already in the table, or the mod is disabled), return false.
-]]--
-function WowRude:onIntimidate(intimidateMe)
-	WowRude:rudeLog("on intimidate")
-	if WowRude:isEnabled() then
-		WowRude:rudeLog("is enabled, checking if on table")
-		if WowRude._trackedUnits[intimidateMe] ~= nil then
-			WowRude:rudeLog("already tracked")
-			return false
-		end
-		WowRude:rudeLog("starting tracking this unit")
-		WowRude._trackedUnits[intimidateMe] = true
-		WowRude:rudeLog("unit added to trackedUnits!")
-		return true
-	end
-	return false
-end
-
-function WowRude:getUnit(theUnit)
-	return WowRude._trackedUnits[theUnit]
-end
-
-
-function WowRude:complainCivilians()
-	return WowRude._settings.complainCivilians
-end
-
-
-
-
---[[
-Call this whenever a unit is killed.
-Attempts to remove that unit from the table. If it could be removed, and the mod is enabled, complain.
-]]--
-function WowRude:onCopKilled(killedUnit, attack_data)
-
-	if WowRude:isEnabled() then
-		WowRude:rudeLog("onCopKilled called")
-		if WowRude:stopTracking(killedUnit) == true then
-			--or (WowRude:complainCivilians() and managers.enemy:is_civilian(killedUnit)) then
-			WowRude:rudeLog("time to complain!")
-			WowRude:complain(attack_data)
-		end
-	
-	else
-		WowRude:stopTracking(killedUnit)
-	end
-
-	--[[
-	if WowRude:stopTracking(killedUnit) and WowRude:isEnabled() then
-		WowRude:complain(attacker_unit)
-	end
-	--]]
-end
-
-WowRude.logInChat = false;
-
-function WowRude:rudeLog(logThis)
-	log("wow rude " .. logThis)
-	
-	if WowRude.logInChat and managers.chat then 
-		managers.chat:_receive_message(1,"wow rude logged",logThis,Color.orange)
-		return true
-	end
-end
-
-
--- and the code responsible for complaining
-function WowRude:complain(attack_data)
-
-	if WowRude:isEnabled() then
-	
-		WowRude:rudeLog("I shall now proceed to write a strongly-worded letter.")
-		--[[
-		for i, v in ipairs(attack_data) do
-			WowRude:rudeLog(i .. " : " .. v)
-		end
-		]]--
-	
-		local text = "PLACEHOLDER"
-		
-		if WowRude._settings.nameAndShame and (attack_data.attacker_unit ~= nil) then
-		
-		
-			local attacker_unit = attack_data.attacker_unit
-	
-			local attacker_name = "???"
-		
-			if alive(attacker_unit) and attacker_unit:base() then
-				if attacker_unit:base().thrower_unit then
-					attacker_unit = attacker_unit:base():thrower_unit()
-				elseif attacker_unit:base().sentry_gun then
-					attacker_unit = attacker_unit:base():get_owner()
-				end
-				
-				attacker_name = WowRude:_name(attacker_unit)
-			else
-				WowRude:rudeLog("UNKNOWN ATTACKER " .. attacker_unit)
-			end
-			
-			text = WowRudeResponses:respond_named(attacker_name)
-		
-		else
-			text = WowRudeResponses:respond_unnamed()
-		end
-		
-		
-		--local text = WowRudeResponses:respond_named(attacker_name)
-		
-		
-		if managers.chat then 
-			if managers.network:session() and #managers.network:session()._peers_all <= 1 then 
-				managers.chat:_receive_message(1,"basic human decency",text,Color.red)
-			else
-				managers.chat:send_message(ChatManager.GAME, managers.network.account:username() or ">:(", ">:( " .. text)
+	Checks if wowRude is enabled or not.
+	]]--
+	function WowRude:isEnabled()
+		if self._settings.isEnabled then
+			--log("wow rude: is enabled")
+			if self._settings.hostOnly then
+				--log("wow rude: checking host only")
+				return Network:is_server()
 			end
 			return true
-		else
-			log("wow rude " .. text)
+		end
+		self:rudeLog("is not enabled", 2)
+		return false
+	end
+	
+	-- should Wow Rude complain from when the enemy puts their hands up?
+	function WowRude:complainHandsUp()
+		return self._settings.complainHandsUp
+	end
+	
+	function WowRude:complainCivilians()
+		return self._settings.complainCivilians
+	end
+	
+	function Complainer:getUnit(theUnit)
+		return self.tracked_units[theUnit]
+	end
+
+	
+	function Complainer:onIntimidate(unit)
+		WowRude:rudeLog("on intimidate", 3)
+		if WowRude:isEnabled() then
+			WowRude:rudeLog("is enabled, checking if on table", 2)
+			if self.tracked_units[unit] ~= nil then
+				WowRude:rudeLog("already tracked", 3)
+				return false
+			end
+			WowRude:rudeLog("starting tracking this unit", 2)
+			self.tracked_units[unit] = true
+			WowRude:rudeLog("unit added to trackedUnits!", 3)
+			return true
+		end
+		return false
+	end
+	
+	--[[
+	Stop tracking a cop (removes it from the table).
+	Happens regardless of whether or not WowRude is enabled or not.
+	Returns true if cop was being tracked, false if not being tracked.
+	]]--
+	function Complainer:stopTracking(unit)
+		--WowRude:rudeLog("stopping tracking")
+		if tracked_units[unit] ~= nil then
+			WowRude:rudeLog("no longer tracked", 3)
+			tracked_units[unit] = nil
+			return true
+		end
+		return false
+	end
+	
+	function WowRude:stopTracking(unit)
+		return self.complainer:stopTracking(unit)
+	end
+	
+	
+	-- handles the stopping tracking and the complaining.
+	function Complainer:onKilled(damage_info, target)
+		local target_info = HopLib:unit_info_manager():get_info(target)
+		if not target_info or not WowRude:isEnabled() then
+			return
+		end
+		
+		if self:stopTracking(target) or (WowRude:complainCivilians() and target_info:is_civilian()) then
+			
+		
+			if not alive(damage_info.attacker_unit) or not damage_info.attacker_unit:base() then
+				return
+			end
+			
+			
+			WowRude:rudeLog("I shall now proceed to write a strongly-worded letter.", 2)
+			--[[
+			for i, v in ipairs(attack_data) do
+				WowRude:rudeLog(i .. " : " .. v)
+			end
+			]]--
+		
+			local text = "PLACEHOLDER"
+			
+			if WowRude._settings.nameAndShame and (damage_info.attacker_unit ~= nil and alive(damage_info.attacker_unit) and damage_info.attacker_unit:base()) then
+			
+			
+				local attacker_unit = damage_info.attacker_unit:base().thrower_unit and damage_info.attacker_unit:base():thrower_unit() or damage_info.attacker_unit
+				local attacker_info = HopLib:unit_info_manager():get_info(attacker_unit)
+		
+				local attacker_name = attacker_info:name()
+				
+				text = WowRudeResponses:respond_named(attacker_name)
+			
+			else
+				text = WowRudeResponses:respond_unnamed()
+			end
+			
+			
+			
+			if managers.chat then 
+				if managers.network:session() and #managers.network:session()._peers_all <= 1 then 
+					managers.chat:_receive_message(ChatManager.GAME,"basic human decency",text,Color.red)
+				else
+					managers.chat:send_message(ChatManager.GAME, managers.network.account:username() or ">:(", ">:( " .. text)
+				end
+				return true
+			else
+				log("wow rude " .. text)
+			end
+			
+			
+			
+			-- TODO
+			
+			-- see https://github.com/segabl/pd2-kill-feed/blob/master/mod.lua
+			
 		end
 	
 	end
 	
+	
+	function WowRude:action_request(this_unit, action_desc)
+	
+		if action_desc.variant == "hands_back" or (action_desc.variant == "hands_up" and WowRude:complainHandsUp()) then
+			
+			WowRude:rudeLog("hands up or back", 1)
+		
+			if self.complainer:onIntimidate(this_unit) then
+				WowRude:rudeLog("hands up or back: onIntimidate started", 0)
+			else
+				WowRude:rudeLog("hands up or back: already intimidated", 0)
+			end
+			return
+
+			--[[
+			if WowRude.TrackedUnits[this_unit] ~= nil then
+				-- Already tracking this unit, do not add another contour as they are reference counted (i.e. every call to add()
+				-- /must/ have a matching call to remove() with the same type, unless the contour type has a fadeout value). If you
+				-- do not understand the concept of reference counting, read up on mutexes and deadlocks, the reason you should not
+				-- call ContourExt:add() twice should then become obvious (albeit with far less severe consequences)
+				-- This can occasionally happen when a unit surrenders twice (e.g. getting ignored the first time so it returns to
+				-- its normal stance, but then surrendering again on a second domination attempt. This second attempt appears to
+				-- bypass the "hands_up" action at random, so the above check catches both of them as a failsafe)
+				return result
+			end
+
+			-- Don't bother with contour color changing, the friendly contour color is obvious enough for most players to know
+			-- that they should stop shooting (field-tested and proven true). If anything, the hostage_trade contour color ends
+			-- up confusing players more
+			
+
+			-- This unit needs to be tracked from now on since a contour has been placed on it by this mod
+			WowRude.TrackedUnits[this_unit] = true
+			]]--
+
+		elseif action_desc.variant == "tied_all_in_one" then
+			-- This will occur under two circumstances: 
+			-- 1) When a guard is dominated in stealth (see CopLogicIntimidated._start_action_hands_up())
+			-- 2) When a minion re-surrenders for a hostage trade (see CopLogicTrade.hostage_trade())
+
+			-- Is this unit being tracked?
+			if self.complainer:getUnit(this_unit) then
+				WowRude:rudeLog("tracked unit tied_all_in_one", 1)
+				-- This is a minion that has re-surrendered, remove the contour that was placed on it earlier so that the correct
+				-- contour will be seen
+
+				-- HACKHACK --
+				-- Ignore this unit from now on, whatever happens to it from now on is no longer of concern
+				self.complainer:stopTracking(this_unit)
+				
+			elseif managers.groupai:state():whisper_mode() then
+				WowRude:rudeLog("intimidated during stehls", 1)
+				-- This unit needs to be tracked since it has surrendered so that a contour can be applied on it if the heist
+				-- goes loud
+				self.complainer:onIntimidate(this_unit)
+			end
+			return
+
+		else
+			-- Okay, so it's not an intimidation-specific action. Is it being triggered on a tracked unit?
+			if self.complainer:getUnit(this_unit) then
+				-- This is a tracked unit that has not been converted to a minion. CopLogicIdle.on_new_objective() is not hooked as
+				-- it only executes on the server, yet this mod must be capable of running independently on clients without any
+				-- additional support from the server. Hence these checks being placed here, along with the enclosed code within
+				if action_desc.variant == "idle" or action_desc.variant == "stand" then
+
+	-- NOTE: Requires a fix in Moveable Intimidated Cop's CopBrain:on_hostage_move_interaction() hook to ensure it sets
+	-- self._unit:base().mic_is_being_moved before calling action_request(), otherwise this mod will mistakenly untrack the unit
+
+					-- Dominated units are not supposed to be moving around or otherwise doing anything, this unit must have been
+					-- freed by a cop (or traded as a hostage). Remove its friendly contour - this unit is now an enemy (again)
+					-- This is placed here because these actions can be performed by any active cop, so there is a need
+					-- to filter out all the other untracked units. Other related actions (e.g. "run", "turn") could also be
+					-- caught here, but there is not much point in doing so as the first thing a unit will do upon being freed is
+					-- stand back up again
+					-- Stop tracking this unit, whatever happens to it from now on is no longer of concern
+					self.complainer:stopTracking(this_unit)
+				end
+			end		-- type(masterunit) == "boolean"
+		end		-- action_desc.variant if-elseif-else checks
+	end
+	
+	
+	Hooks:Add(
+		"HopLibOnUnitDied",
+		"WowRude_HopLibOnUnitDied",
+		function (unit, damage_info)
+			if WowRude:isEnabled()  and unit:character_damage():dead() then
+			
+				WowRude:rudeLog("hoplip on died start", 0)
+			
+				WowRude.complainer:onKilled(damage_info, unit)
+				WowRude:rudeLog("hoplip on died done", 0)
+				
+			end
+		end
+	)
+	
+
+	
+	
 end
+
+WowRude:reset()
+
+if RequiredScript == "lib/managers/menumanager" then
+
+	local mpath = ModPath
+
+	Hooks:Add(
+		'LocalizationManagerPostInit',
+		'LocalizationManagerPostInit_WowRude',
+		function(loc)
+			local lang, path = SystemInfo and SystemInfo:language(), 'loc/english.json'
+			--[[
+			if lang == Idstring('language') then
+				path = 'loc/language.txt'
+			end
+			]]--
+			loc:load_localization_file(mpath .. path)
+		end
+	)
+
+
+	Hooks:Add(
+		'MenuManagerBuildCustomMenus',
+		'MenuManagerBuildCustomMenus_WowRude',
+		function(menu_manager, nodes)
+			AutoMenuBuilder:load_settings(WowRude._settings, 'wow_rude')
+			AutoMenuBuilder:create_menu_from_table(
+				nodes,
+				WowRude._settings,
+				'wow_rude',
+				'blt_options',
+				WowRude._values,
+				WowRude._order
+			)
+		end
+	)
+
+elseif RequiredScript == "lib/units/enemies/cop/copmovement" then
+
+
+	Hooks:PreHook(
+		CopMovement,
+		"action_request",
+		"WowRude_CopMovement_action_request",
+		function(self, action_desc)
+			if WowRude:isEnabled() then
+				local this_unit = self._unit
+		
+				if this_unit == nil then
+					return
+				end
+
+				-- Ignore civilians (yes, they actually /are/ cops)
+				if managers.enemy:is_civilian(this_unit) then
+					return
+				end
+
+				-- Only interested in actions
+				if action_desc.type == nil or action_desc.type ~= "act" then
+					return
+				end
+
+				-- Compatibility with Movable Intimidated Cops (ignore all units being manipulated by it)
+				if this_unit:base().mic_is_being_moved ~= nil then
+					return
+				end
+				
+				WowRude:action_request(this_unit, action_desc)
+				
+			end
+		end
+	)
+	
+	
+elseif RequiredScript == "lib/managers/enemymanager" then
+
+	Hooks:PreHook(
+		EnemyManager,
+		"on_enemy_destroyed",
+		"WowRude_EnemyManager_on_enemy_destroyed",
+		function(self, enemy)
+			
+			WowRude:rudeLog("manager on_enemy_destroyed start", 0)
+			
+			WowRude:stopTracking(enemy)
+			
+			WowRude:rudeLog("manager on_enemy_destroyed done!", 0)
+			
+		
+		end
+	)	
+
+end
+
+
+
 
 if WowRude ~= nil then
 	log("wow rude exists!")
 end
-
-
---[[
--- an object I guess
---WowRude = {}
-
--- the dictionary(?) of intimidated cops
-WowRude.TrackedUnits = {}
-
--- table for the responses we might use when someone kills our intimidated cop
-WowRude.responses = {
-	"rude",
-	"smh my head",
-	"you serious?",
-	"kids these days...",
-	"what the fuck",
-	"bruh",
-	"excuse me!?"
-}
--- the size of the above table
-WowRude.responseCount = 7
-
--- the cursor for the next response we'll be using from that table
-WowRude.responseCursor = 1
-
--- and the code responsible for complaining
-WowRude.complain = function()
-	
-	local text = WowRude.responses[WowRude.responseCursor]
-	
-	if WowRude.responseCursor == WowRude.responseCount then
-		WowRude.responseCursor = 1
-	else
-		WowRude.responseCursor = WowRude.responseCursor + 1
-	end
-	
-	if managers.chat then 
-		if managers.network:session() and #managers.network:session()._peers_all <= 1 then 
-			managers.chat:_receive_message(1,"basic human decency",text,Color.red)
-		else
-			managers.chat:send_message(ChatManager.GAME, managers.network.account:username() or ">:(", ">:( " .. text)
-		end
-		return true
-	else
-		log("wow rude " .. text)
-	end
-	
-end
-
-]]--

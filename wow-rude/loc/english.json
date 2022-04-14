@@ -5,10 +5,19 @@
 	"menu_wow_rude_isEnabled_desc" : "Check to automatically complain whenever anyone kills a surrendering cop",
 	"menu_wow_rude_hostOnly" : "Host only mode",
 	"menu_wow_rude_hostOnly_desc" : "If checked, 'Wow Rude' will ONLY complain if you are hosting.",
-	"menu_wow_rude_nameAndShame": "Name and Shame: TODO",
-	"menu_wow_rude_nameAndShame_desc": "If checked, 'Wow Rude' will name the culprit. Even if the culprit was you. [NAMING DOES NOT WORK]",
+	"menu_wow_rude_nameAndShame": "Name and Shame",
+	"menu_wow_rude_nameAndShame_desc": "If checked, 'Wow Rude' will name the culprit. Even if the culprit was you.",
 	"menu_wow_rude_complainCivilians": "Complain about civilians",
 	"menu_wow_rude_complainCivilians_desc": "If checked, 'Wow Rude' will complain about civilians getting murdered as well.",
+	
+	"menu_wow_rude_complainHandsUp" : "Complain from hands up",
+	"menu_wow_rude_complainHandsUp_desc" : "If checked, 'wow rude' will complain about cops killed during the first step of the surrendering process (with their hands up)",
+	
+	"menu_wow_rude_logInChat" : "Log debug info in the chat",
+	"menu_wow_rude_logInChat_desc": "Whether or not to log debug info into the chat (will only be visible to you). Please don't turn this on, unless you want to be flooded with useless info",
+	
+	"menu_wow_rude_minLogInChat" : "Minimum importance for messages to be logged in the chat",
+	"menu_wow_rude_minLogInChat_desc": "This is here for debug purposes (and my sanity) only. Don't bother touching this yourself.",
 	
 	"menu_wow_rude_ignoreNPCs": "Ignore NPC kills",
 	"menu_wow_rude_ignoreNPCs_desc": "If checked, 'Wow Rude' will ignore kills made by NPCs.",
