@@ -33,7 +33,7 @@
     {
         "identifier" : "wow_rude_autoupdate",
         "host": {
-            "meta": "https://github.com/11BelowStudio/wow-rude/releases/download/wow-rude-release/meta.json"
+		"meta": "https://github.com/11BelowStudio/wow-rude/releases/download/refs%2Fheads%2Fmain/meta.json"
         }
     }
 ]
