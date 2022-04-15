@@ -14,7 +14,7 @@
 	"menu_wow_rude_complainHandsUp_desc" : "If checked, 'wow rude' will complain about cops killed during the first step of the surrendering process (with their hands up)",
 	
 	"menu_wow_rude_logStuff" : "Log debug info in the logs",
-	"menu_wow_rude_logStuff": "Whether or not to log debug info into the logs. Please don't turn this on, unless you want your logs to be flooded with useless info",
+	"menu_wow_rude_logStuff_desc": "Whether or not to log debug info into the logs. Please don't turn this on, unless you want your logs to be flooded with useless info",
 	"menu_wow_rude_logInChat" : "Log debug info in the chat",
 	"menu_wow_rude_logInChat_desc": "Whether or not to log debug info into the chat (will only be visible to you). Please don't turn this on, unless you want to be flooded with useless info",
 	

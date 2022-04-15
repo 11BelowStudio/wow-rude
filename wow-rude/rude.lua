@@ -6,13 +6,12 @@ if not HopLib then
 	return
 end
 
---dofile(ModPath .. 'automenubuilder.lua')
+dofile(ModPath .. 'automenubuilder.lua')
 dofile(ModPath .. 'wowRudeResponses.lua')
 
 
 
 -- YEAH IT'S BASICALLY RIPPED FROM HELPFUL INTIMIDATED OUTLINES
--- and a bit from PocoHud3
 
 if not WowRude then
 
