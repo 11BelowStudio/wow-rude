@@ -26,16 +26,13 @@ if not WowRude then
 		complainCivilians = false,
 		nameAndShame = true,
 		
+		logStuff = false,
 		logInChat = false,
 		minLogInChat = 1
 			
 	}
 	WowRude._values = {
-		minLogInChat = {
-			min = 0,
-			max = 5,
-			step = 1
-		}
+		minLogInChat = { 0, 5, 1 }
 	}
 	WowRude._order = {
 		isEnabled = 100,
@@ -43,6 +40,7 @@ if not WowRude then
 		complainHandsUp = 90,
 		complainCivilians = 85,
 		nameAndShame = 80,
+		logStuff = 3,
 		logInChat = 2,
 		minLogInChat = 1
 	}
@@ -68,11 +66,15 @@ if not WowRude then
 	
 	-- logging utility function that also logs stuff in chat
 	function WowRude:rudeLog(logThis, importance)
-		log("wow rude [" .. importance .. "] " .. logThis)
 		
-		if managers.chat and self._settings.logInChat and (importance >= self._settings.minLogInChat) then 
-			managers.chat:_receive_message(ChatManager.GAME,"wow rude [".. importance .. "]",logThis,Color.orange)
-			return true
+		if self._settings.logStuff then
+		
+			log("wow rude [" .. importance .. "] " .. logThis)
+			
+			if managers.chat and self._settings.logInChat and (importance >= self._settings.minLogInChat) then 
+				managers.chat:_receive_message(ChatManager.GAME,"wow rude [".. importance .. "]",logThis,Color.orange)
+				return
+			end
 		end
 	end
 	
