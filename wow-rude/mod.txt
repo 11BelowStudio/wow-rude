@@ -1,9 +1,9 @@
 {
 	"name": "wow rude",
 	"description": "you ever just have someone murder that cop you're trying to convert? it's rude, isn't it?\n(lovingly ripped from helpful intimidated outlines)",
-	"author": "3[L] (credit to Undeadsewer, Snh20, Girnee, BangL for the original intimidated outlines mod, and Hoppip for HopLib)",
+	"author": "3[L] (credit to Undeadsewer, Snh20, Girnee, BangL for the original intimidated outlines mod, Hoppip for HopLib, and OffYeRocker for Bee Movie To Chat)",
 	"contact": "11belowstudio.github.io",
-	"version": "4.2",
+	"version": "5",
 	"color": "189 30 36",
 	"image" : "icon.png", 
 	"blt_version": 2,

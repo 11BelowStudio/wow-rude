@@ -13,13 +13,18 @@
 	"menu_wow_rude_complainHandsUp" : "Complain from hands up",
 	"menu_wow_rude_complainHandsUp_desc" : "If checked, 'wow rude' will complain about cops killed during the first step of the surrendering process (with their hands up)",
 	
-	"menu_wow_rude_logStuff" : "Log debug info in the logs",
-	"menu_wow_rude_logStuff_desc": "Whether or not to log debug info into the logs. Please don't turn this on, unless you want your logs to be flooded with useless info",
+	"menu_wow_rude_logging": "logging",
+	"menu_wow_rude_logging_desc": "you don't need to worry about this.",
+	"menu_wow_rude_logStuff" : "Log debug info",
+	"menu_wow_rude_logStuff_desc": "Whether or not to log debug info",
 	"menu_wow_rude_logInChat" : "Log debug info in the chat",
 	"menu_wow_rude_logInChat_desc": "Whether or not to log debug info into the chat (will only be visible to you). Please don't turn this on, unless you want to be flooded with useless info",
-	
+	"menu_wow_rude_logInLogs" : "Log debug info in logs",
+	"menu_wow_rude_logInLogs_desc": "Whether or not to log debug info in your BLThook logs. Please don't turn this on, unless you want them to be flooded with useless info",
 	"menu_wow_rude_minLogInChat" : "Minimum importance for messages to be logged in the chat",
 	"menu_wow_rude_minLogInChat_desc": "This is here for debug purposes (and my sanity) only. Don't bother touching this yourself.",
+	"menu_wow_rude_minLogInLogs" : "Minimum importance for messages to be logged in the BLThook logs",
+	"menu_wow_rude_minLogInLogs_desc": "This is here for debug purposes (and my sanity) only. Don't bother touching this yourself.",
 	
 	"menu_wow_rude_ignoreNPCs": "Ignore NPC kills",
 	"menu_wow_rude_ignoreNPCs_desc": "If checked, 'Wow Rude' will ignore kills made by NPCs.",

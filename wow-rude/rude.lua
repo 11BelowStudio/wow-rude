@@ -7,7 +7,18 @@ if not HopLib then
 end
 
 dofile(ModPath .. 'automenubuilder.lua')
-dofile(ModPath .. 'wowRudeResponses.lua')
+--dofile(ModPath .. 'wowRudeResponses.lua')
+
+
+--[[
+
+Do you want to change the responses?
+
+Well, go to /responses/named.txt and /responses/unnamed.txt to change them!
+
+(please remember to include an %s for the responses in /responses/named.txt in order for the name to appear)
+
+]]--
 
 
 
@@ -18,6 +29,7 @@ if not WowRude then
 
 	_G.WowRude = {}
 	
+	
 	WowRude._settings = {
 		isEnabled = true,
 		hostOnly = false,
@@ -25,13 +37,31 @@ if not WowRude then
 		complainCivilians = false,
 		nameAndShame = true,
 		
-		logStuff = false,
-		logInChat = false,
-		minLogInChat = 1
-			
+		logging = {
+			logStuff = false,
+			logInChat = false,
+			logInLogs = false,
+			minLogInChat = 1,
+			minLogInLogs = 1
+		}
+		
 	}
 	WowRude._values = {
-		minLogInChat = { 0, 5, 1 }
+		logging = { -1, 5, 1},
+		logInChat = {
+			callback = function()
+				if WowRude._settings.logging.logInChat then
+					WowRude._settings.logging.logStuff = true
+				end
+			end
+		},
+		logInLogs = {
+			callback = function()
+				if WowRude._settings.logging.logInLogs then
+					WowRude._settings.logging.logStuff = true
+				end
+			end
+		}
 	}
 	WowRude._order = {
 		isEnabled = 100,
@@ -39,9 +69,22 @@ if not WowRude then
 		complainHandsUp = 90,
 		complainCivilians = 85,
 		nameAndShame = 80,
+		logging = -999,
+		--[[, {
+			priority = -999,
+			logStuff = 3,
+			logInChat = 2,
+			logInLogs = 2,
+			minLogInChat = 1,
+			minLogInLogs = 1
+		} ]]--
+		
 		logStuff = 3,
 		logInChat = 2,
-		minLogInChat = 1
+		logInLogs = 2,
+		minLogInChat = 1,
+		minLogInLogs = 1
+		
 	}
 	
 	local Complainer = class()
@@ -51,7 +94,6 @@ if not WowRude then
 	local tracked_units = {}
 	
 	Complainer.tracked_units = tracked_units
-	
 	
 	
 	
@@ -66,16 +108,100 @@ if not WowRude then
 	-- logging utility function that also logs stuff in chat
 	function WowRude:rudeLog(logThis, importance)
 		
-		if self._settings.logStuff then
+		if self._settings.logging.logStuff then
 		
-			log("wow rude [" .. importance .. "] " .. logThis)
+			local logging = self._settings.logging
+		
+			if logging.logInLogs and (importance >= logging.minLogInLogs) then
+				log("[wow rude] [" .. importance .. "] " .. logThis)
+			end
 			
-			if managers.chat and self._settings.logInChat and (importance >= self._settings.minLogInChat) then 
-				managers.chat:_receive_message(ChatManager.GAME,"wow rude [".. importance .. "]",logThis,Color.orange)
-				return
+			if managers.chat and logging.logInChat and (importance >= logging.minLogInChat) then 
+				managers.chat:_receive_message(ChatManager.GAME,"[wow rude] [".. importance .. "]",logThis,Color.orange)
 			end
 		end
 	end
+	
+	
+	local Responses = class()
+	
+	Complainer.responses = Responses
+	
+	-- lovingly nicked from https://gist.github.com/ram-nadella/dd067dfeb3c798299e8d
+	function Responses:_trim(trim_this)
+		return string.gsub(trim_this, "^%s*(.-)%s*$", "%1")
+	end
+	
+	
+	-- lovingly nicked + adapted from BeeMovieToChat (https://modworkshop.net/mod/26799) by OffYeRocker
+	function Responses:_readFromFile(response_file)
+		local response_table = {}
+		
+		for line in io.lines(response_file) do
+			-- regex nicked from https://devforum.roblox.com/t/help-with-checking-if-a-string-is-only-spaces/780592/2
+			if line and not(string.match(line, "^%s*$")) then 
+				local trimmed = self:_trim(line)
+				table.insert(response_table,trimmed)
+				WowRude:rudeLog("response read " .. trimmed, -1)
+			end
+		end
+		if next(response_table) == nil then
+			WowRude:rudeLog("READING FROM " .. response_file .. " FAILED!", 5)
+			response_table = {
+				"response file broke but that's still rude.",
+				"rude",
+				"smh my head",
+				"you serious?",
+				"kids these days...",
+				"what the fuck",
+				"bruh",
+				"excuse me!?"
+			}
+		end
+		return response_table
+	end
+	
+	
+	-- reads the 'name and shame' responses and the 'no names' responses.
+	Responses._named = Responses:_readFromFile(ModPath .. "responses/named.txt")
+	Responses._unnamed = Responses:_readFromFile(ModPath .. "responses/unnamed.txt")
+	
+	Responses._namedCursor = 1
+	Responses._unnamedCursor = 1
+	
+	Responses._namedMax = table.maxn(Responses._named)
+	Responses._unnamedMax = table.maxn(Responses._unnamed)
+	
+	
+	
+	function Responses:getResponse(named)
+	
+		local response = "grr"
+	
+		if named then
+		
+			response = self._named[self._namedCursor]
+		
+			self._namedCursor = self._namedCursor + 1
+			if self._namedCursor > self._namedMax then
+				self._namedCursor = 1
+			end
+
+			
+		else
+			
+			response = self._unnamed[self._unnamedCursor]
+		
+			self._unnamedCursor = self._unnamedCursor + 1
+			if self._unnamedCursor > self._unnamedMax then
+				self._unnamedCursor = 1
+			end
+			
+		end
+
+		return response
+	end
+	
 	
 	
 	--[[
@@ -165,34 +291,41 @@ if not WowRude then
 				WowRude:rudeLog(i .. " : " .. v)
 			end
 			]]--
+			
+			local nameAndShame = WowRude._settings.nameAndShame
 		
-			local text = "PLACEHOLDER"
+			local response = self.responses:getResponse(nameAndShame)
 			
-			if WowRude._settings.nameAndShame and (damage_info.attacker_unit ~= nil and alive(damage_info.attacker_unit) and damage_info.attacker_unit:base()) then
+			if nameAndShame then
+			
+				local attacker_name = "dickhead"
+			
+				if damage_info.attacker_unit ~= nil and alive(damage_info.attacker_unit) and damage_info.attacker_unit:base() then
 			
 			
-				local attacker_unit = damage_info.attacker_unit:base().thrower_unit and damage_info.attacker_unit:base():thrower_unit() or damage_info.attacker_unit
-				local attacker_info = HopLib:unit_info_manager():get_info(attacker_unit)
-		
-				local attacker_name = attacker_info:name()
+					local attacker_unit = damage_info.attacker_unit:base().thrower_unit and damage_info.attacker_unit:base():thrower_unit() or damage_info.attacker_unit
+					local attacker_info = HopLib:unit_info_manager():get_info(attacker_unit)
+			
+					attacker_name = attacker_info:name()
+					
+					
+				end
 				
-				text = WowRudeResponses:respond_named(attacker_name)
+				response = string.format(response, attacker_name)
 			
-			else
-				text = WowRudeResponses:respond_unnamed()
 			end
 			
 			
 			
 			if managers.chat then 
 				if managers.network:session() and #managers.network:session()._peers_all <= 1 then 
-					managers.chat:_receive_message(ChatManager.GAME,"basic human decency",text,Color.red)
+					managers.chat:_receive_message(ChatManager.GAME,"basic human decency",response,Color.red)
 				else
-					managers.chat:send_message(ChatManager.GAME, managers.network.account:username() or ">:(", ">:( " .. text)
+					managers.chat:send_message(ChatManager.GAME, managers.network.account:username() or ">:(", ">:( " .. response)
 				end
 				return true
 			else
-				log("wow rude " .. text)
+				WowRude:rudeLog("wow rude " .. response, 1)
 			end
 			
 			
@@ -344,6 +477,7 @@ if RequiredScript == "lib/managers/menumanager" then
 			)
 		end
 	)
+	
 
 elseif RequiredScript == "lib/units/enemies/cop/copmovement" then
 
