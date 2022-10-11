@@ -1,7 +1,7 @@
 [
     {
         "ident" : "wow_rude_autoupdate",
-        "hash" : "%HASH%",
+        "version" : "%VERSION%",
         "patchnotes_url" : "https://github.com/11BelowStudio/wow-rude/blob/main/README.md",
         "download_url" : "https://github.com/11BelowStudio/wow-rude/releases/download/refs%2Fheads%2Fmain/wow-rude.zip"
     }

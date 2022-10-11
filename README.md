@@ -15,6 +15,11 @@ Uses Hugo's PD2 auto-update example thing https://github.com/HugoZink/PD2AutoUpd
 
 # Chainslog
 
+### v6.1 - you can (hopefully) edit the responses without it complaining now
+11 october 2022
+* Attempted to finagle the release.yml thing to get meta.json to use a version identifier instead of a hash.
+* Should allow you to edit the response files without angering the auto-updater (assuming that the git action actually runs successfully).
+
 ## v6 - you can (hopefully) disable the prefixing now
 11 october 2022
 * You can disable the `>:( ` that appears before the messages you put into chat (hopefully)
