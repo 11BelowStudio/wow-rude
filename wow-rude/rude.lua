@@ -36,6 +36,7 @@ if not WowRude then
 		complainHandsUp = true,
 		complainCivilians = false,
 		nameAndShame = true,
+		usePrefix = true,
 		
 		logging = {
 			logStuff = false,
@@ -69,6 +70,7 @@ if not WowRude then
 		complainHandsUp = 90,
 		complainCivilians = 85,
 		nameAndShame = 80,
+		usePrefix = 75,
 		logging = -999,
 		--[[, {
 			priority = -999,
@@ -99,7 +101,7 @@ if not WowRude then
 	
 	-- utility function to reset the tracked units.
 	function WowRude:reset()
-		local units = Complainer.tracked_units
+		local units = self.complainer.tracked_units
 		for k in pairs(units) do
 			units[k] = nil
 		end
@@ -141,7 +143,7 @@ if not WowRude then
 			-- regex nicked from https://devforum.roblox.com/t/help-with-checking-if-a-string-is-only-spaces/780592/2
 			if line and not(string.match(line, "^%s*$")) then 
 				local trimmed = self:_trim(line)
-				table.insert(response_table,trimmed)
+				table.insert(response_table, trimmed)
 				WowRude:rudeLog("response read " .. trimmed, -1)
 			end
 		end
@@ -228,9 +230,21 @@ if not WowRude then
 	function WowRude:complainCivilians()
 		return self._settings.complainCivilians
 	end
+
+	function WowRude:nameAndShame()
+		return self._settings.nameAndShame
+	end
+
+	function WowRude:usePrefix()
+		return self._settings.usePrefix
+	end
 	
 	function Complainer:getUnit(theUnit)
 		return self.tracked_units[theUnit]
+	end
+
+	function WowRude:getComplainer()
+		return self.complainer
 	end
 
 	
@@ -292,7 +306,7 @@ if not WowRude then
 			end
 			]]--
 			
-			local nameAndShame = WowRude._settings.nameAndShame
+			local nameAndShame = WowRude:nameAndShame()
 		
 			local response = self.responses:getResponse(nameAndShame)
 			
@@ -315,13 +329,15 @@ if not WowRude then
 			
 			end
 			
-			
-			
 			if managers.chat then 
 				if managers.network:session() and #managers.network:session()._peers_all <= 1 then 
 					managers.chat:_receive_message(ChatManager.GAME,"basic human decency",response,Color.red)
 				else
-					managers.chat:send_message(ChatManager.GAME, managers.network.account:username() or ">:(", ">:( " .. response)
+					if WowRude:usePrefix() then
+						managers.chat:send_message(ChatManager.GAME, managers.network.account:username() or ">:(", ">:( " .. response)
+					else
+						managers.chat:send_message(ChatManager.GAME, managers.network.account:username() or ">:(", response)
+					end
 				end
 				return true
 			else
@@ -336,6 +352,12 @@ if not WowRude then
 			
 		end
 	
+	end
+
+
+	-- wrapper for handling the stopping tracking and the complaining.
+	function WowRude:onKilled(damage_info, target)
+		return self.complainer:onKilled(damage_info, target)
 	end
 	
 	
@@ -428,8 +450,8 @@ if not WowRude then
 			if WowRude:isEnabled()  and unit:character_damage():dead() then
 			
 				WowRude:rudeLog("hoplip on died start", 0)
-			
-				WowRude.complainer:onKilled(damage_info, unit)
+				
+				WowRude:onKilled(damage_info, unit)
 				WowRude:rudeLog("hoplip on died done", 0)
 				
 			end
