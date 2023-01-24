@@ -37,6 +37,7 @@ if not WowRude then
 		complainCivilians = false,
 		nameAndShame = true,
 		usePrefix = true,
+		shuffle = true,
 		
 		logging = {
 			logStuff = false,
@@ -71,6 +72,7 @@ if not WowRude then
 		complainCivilians = 85,
 		nameAndShame = 80,
 		usePrefix = 75,
+		shuffle = 70,
 		logging = -999,
 		--[[, {
 			priority = -999,
@@ -175,28 +177,57 @@ if not WowRude then
 	Responses._unnamedMax = table.maxn(Responses._unnamed)
 	
 	
+	-- obtains a random response (but not index 1) from the specified list
+	-- and then swaps the thing in index 1 with the chosen random response
+	function Responses:getShuffledResponse(responseList, responseMax)
 	
-	function Responses:getResponse(named)
+		local pickThis = math.random(2, responseMax)
+		local chosenResponse = responseList[pickThis]
+		responseList[pickThis] = responseList[1]
+		responseList[1] = chosenResponse
+		return chosenResponse
+	
+	end
+	
+	
+	
+	function Responses:getResponse(named, shuffled)
 	
 		local response = "grr"
 	
 		if named then
 		
-			response = self._named[self._namedCursor]
+			if shuffled then
+				
+				response = self:getShuffledResponse(self._named, self._namedMax)
+				
+			else
 		
-			self._namedCursor = self._namedCursor + 1
-			if self._namedCursor > self._namedMax then
-				self._namedCursor = 1
+				response = self._named[self._namedCursor]
+			
+				self._namedCursor = self._namedCursor + 1
+				if self._namedCursor > self._namedMax then
+					self._namedCursor = 1
+				end
+			
 			end
 
 			
 		else
-			
-			response = self._unnamed[self._unnamedCursor]
 		
-			self._unnamedCursor = self._unnamedCursor + 1
-			if self._unnamedCursor > self._unnamedMax then
-				self._unnamedCursor = 1
+			if shuffled then
+			
+				response = self:getShuffledResponse(self._unnamed, self._unnamedMax)
+			
+			else
+			
+				response = self._unnamed[self._unnamedCursor]
+			
+				self._unnamedCursor = self._unnamedCursor + 1
+				if self._unnamedCursor > self._unnamedMax then
+					self._unnamedCursor = 1
+				end
+			
 			end
 			
 		end
@@ -220,6 +251,11 @@ if not WowRude then
 		end
 		self:rudeLog("is not enabled", 2)
 		return false
+	end
+	
+	-- should the responses from Wow, Rude be shuffled?
+	function WowRude:isShuffled()
+		return self._settings.shuffle
 	end
 	
 	-- should Wow Rude complain from when the enemy puts their hands up?
@@ -307,8 +343,9 @@ if not WowRude then
 			]]--
 			
 			local nameAndShame = WowRude:nameAndShame()
+			local shuffled = WowRude:isShuffled()
 		
-			local response = self.responses:getResponse(nameAndShame)
+			local response = self.responses:getResponse(nameAndShame, shuffled)
 			
 			if nameAndShame then
 			
