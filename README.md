@@ -15,6 +15,11 @@ Uses Hugo's PD2 auto-update example thing https://github.com/HugoZink/PD2AutoUpd
 
 # Chainslog
 
+### v7 - from today I shall be shuffling
+24 january 2023
+* You can now make Wow, Rude! use random complaints instead of going through the complaints list in order. Also there are more complaints included by default.
+  * should help make things a bit less boring
+
 ### v6.1 - you can (hopefully) edit the responses without it complaining now
 11 october 2022
 * Attempted to finagle the release.yml thing to get meta.json to use a version identifier instead of a hash.
